@@ -13,6 +13,7 @@ interface AudioSrcProps {
     src: string
     format?: string
     autoplay?: boolean
+    sprite?: IHowlSoundSpriteDefinition
 }
 
 interface AudioPlayer {
@@ -57,7 +58,7 @@ export function AudioPlayerProvider({
     const [stopped, setStopped] = useState(true)
 
     const load = useCallback(
-        ({ src, format, autoplay = false }: AudioSrcProps) => {
+        ({ src, format, autoplay = false, sprite }: AudioSrcProps) => {
             let wasPlaying = false
             if (playerRef.current) {
                 // don't do anything if we're asked to reload the same source
@@ -67,12 +68,12 @@ export function AudioPlayerProvider({
                 // destroys the previous player
                 playerRef.current.unload()
             }
-
             // create a new player
             const howl = new Howl({
                 src,
                 format,
                 autoplay: wasPlaying || autoplay, // continues playing next song
+                sprite,
                 onload: () => {
                     setError(null)
                     setStopped(true)
@@ -138,16 +139,15 @@ export function AudioPlayerProvider({
 
 export const useAudioPlayer = (props?: AudioSrcProps): UseAudioPlayer => {
     const { player, load, ...context } = useContext(AudioPlayerContext)!
-
-    const { src, format, autoplay } = props || {}
+    const { src, format, autoplay, sprite } = props || {}
 
     useEffect(() => {
         // if useAudioPlayer is called without arguments
         // don't do anything: the user will have access
         // to the current context
         if (!src) return
-        load({ src, format, autoplay })
-    }, [src, format, autoplay, load])
+        load({ src, format, autoplay, sprite })
+    }, [src, format, autoplay, sprite, load])
 
     return {
         ...context,
